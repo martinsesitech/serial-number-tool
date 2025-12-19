@@ -439,10 +439,12 @@
             String(unit).padStart(4, '0');
 
           const numericValue = BigInt(dataString);
-          const step1 = (numericValue * PRIME_MULTIPLIER) % MODULO;
-          const finalValue = step1 ^ SECRET_KEY;
+          
+          // Encode: multiply by prime and take modulo, then XOR
+          const afterMultiply = (numericValue * PRIME_MULTIPLIER) % MODULO;
+          const afterXOR = afterMultiply ^ SECRET_KEY;
 
-          let base36String = finalValue.toString(36).toUpperCase();
+          let base36String = afterXOR.toString(36).toUpperCase();
 
           if (base36String.length > 8) {
             throw new Error('Data overflow - exceeds 8 characters');
@@ -453,7 +455,8 @@
             serial: base36String,
             dataString: dataString,
             numericValue: numericValue.toString(),
-            encodedValue: finalValue.toString(),
+            afterMultiply: afterMultiply.toString(),
+            afterXOR: afterXOR.toString(),
             productName: productNames[String(product)],
             modelDisplay: getModelDisplay(String(product), model),
             fullYear: 2000 + year,
@@ -484,11 +487,15 @@
             throw new Error('Serial contains invalid characters. Use only 0-9 and A-Z');
           }
 
-          const finalValue = BigInt(parseInt(serial, 36));
-          const beforeXOR = finalValue ^ SECRET_KEY;
+          // Decode: parse from base36
+          const afterXOR = BigInt(parseInt(serial, 36));
           
+          // Reverse XOR
+          const afterMultiply = afterXOR ^ SECRET_KEY;
+          
+          // Reverse multiplication using modular inverse
           const modInverse = modularInverse(PRIME_MULTIPLIER, MODULO);
-          const numericValue = (beforeXOR * modInverse) % MODULO;
+          const numericValue = (afterMultiply * modInverse) % MODULO;
 
           const dataString = numericValue.toString().padStart(13, '0');
 
@@ -518,7 +525,8 @@
             serial: serial,
             dataString: dataString,
             numericValue: numericValue.toString(),
-            encodedValue: finalValue.toString(),
+            afterMultiply: afterMultiply.toString(),
+            afterXOR: afterXOR.toString(),
             productName: productNames[String(productCode)],
             modelDisplay: getModelDisplay(productCode, model),
             fullYear: 2000 + year,
@@ -764,8 +772,12 @@
                       <span className="tech-value">{result.numericValue}</span>
                     </div>
                     <div className="technical-row">
-                      <span className="tech-label">Encoded Value:</span>
-                      <span className="tech-value">{result.encodedValue}</span>
+                      <span className="tech-label">After Multiply & Modulo:</span>
+                      <span className="tech-value">{result.afterMultiply}</span>
+                    </div>
+                    <div className="technical-row">
+                      <span className="tech-label">After XOR (Final):</span>
+                      <span className="tech-value">{result.afterXOR}</span>
                     </div>
                   </div>
                 </details>
