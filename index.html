@@ -440,8 +440,7 @@
 
           const numericValue = BigInt(dataString);
           const step1 = (numericValue * PRIME_MULTIPLIER) % MODULO;
-          const encodedValue = step1 ^ SECRET_KEY;
-          const finalValue = encodedValue % MODULO;
+          const finalValue = step1 ^ SECRET_KEY;
 
           let base36String = finalValue.toString(36).toUpperCase();
 
