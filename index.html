@@ -543,30 +543,32 @@
       };
 
       const modularInverse = (a, m) => {
-        const m0 = m;
-        let x0 = BigInt(0);
-        let x1 = BigInt(1);
+        let t = BigInt(0);
+        let newt = BigInt(1);
+        let r = m;
+        let newr = a;
         
-        if (m === BigInt(1)) return BigInt(0);
-        
-        let tempA = a;
-        let tempM = m;
-        
-        while (tempA > BigInt(1)) {
-          const q = tempA / tempM;
-          let t = tempM;
+        while (newr !== BigInt(0)) {
+          const quotient = r / newr;
           
-          tempM = tempA % tempM;
-          tempA = t;
-          t = x0;
+          let temp = newt;
+          newt = t - quotient * newt;
+          t = temp;
           
-          x0 = x1 - q * x0;
-          x1 = t;
+          temp = newr;
+          newr = r - quotient * newr;
+          r = temp;
         }
         
-        if (x1 < BigInt(0)) x1 += m0;
+        if (r > BigInt(1)) {
+          throw new Error('Modular inverse does not exist');
+        }
         
-        return x1;
+        if (t < BigInt(0)) {
+          t = t + m;
+        }
+        
+        return t;
       };
 
       const handleInputChange = (field, value) => {
